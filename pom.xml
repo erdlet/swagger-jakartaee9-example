@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.erdlet.examples</groupId>
+    <artifactId>swagger-jakartaee9-example</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>swagger-jakartaee9-example</name>
+    <packaging>war</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+
+        <jakarta.jakartaee-web-api.version>9.1.0</jakarta.jakartaee-web-api.version>
+        <swagger-core-jakarta.version>2.2.2</swagger-core-jakarta.version>
+        <jersey-media-multipart.version>3.1.0-M3</jersey-media-multipart.version>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-web-api</artifactId>
+            <version>${jakarta.jakartaee-web-api.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-core-jakarta</artifactId>
+            <version>${swagger-core-jakarta.version}</version>
+        </dependency>
+
+        <!-- Jersey Multipart as provided dependency because API generates some Jersey annotations -->
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
+            <version>${jersey-media-multipart.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.name}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.3.2</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/generated/java/</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>io.swagger.codegen.v3</groupId>
+                <artifactId>swagger-codegen-maven-plugin</artifactId>
+                <version>3.0.34</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/openapi/api.yml</inputSpec>
+                            <language>jaxrs-di</language>
+                            <output>${project.basedir}</output>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+                            <addCompileSourceRoot>false</addCompileSourceRoot>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <apiPackage>de.erdlet.examples.swaggerjakartaee9example.api</apiPackage>
+                            <modelPackage>de.erdlet.examples.swaggerjakartaee9example.api.model</modelPackage>
+                            <modelNameSuffix>ApiModel</modelNameSuffix>
+                            <configOptions>
+                                <sourceFolder>src/generated/java</sourceFolder>
+                                <dateLibrary>java8</dateLibrary>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- WORKAROUND since there is no Swagger Codegen support for jakarta.* namespace -->
+            <plugin>
+                <groupId>io.github.floverfelt</groupId>
+                <artifactId>find-and-replace-maven-plugin</artifactId>
+                <version>1.1.0</version>
+                <executions>
+                    <execution>
+                        <id>exec</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>find-and-replace</goal>
+                        </goals>
+                        <configuration>
+                            <replacementType>file-contents</replacementType>
+                            <baseDir>src/generated/java/</baseDir>
+                            <findRegex>javax</findRegex>
+                            <replaceValue>jakarta</replaceValue>
+                            <recursive>true</recursive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.cargo</groupId>
+                <artifactId>cargo-maven3-plugin</artifactId>
+                <version>1.9.13</version>
+                <configuration>
+                    <containerId>glassfish6x</containerId>
+                    <containerUrl>
+                        https://github.com/eclipse-ee4j/glassfish/releases/download/6.2.5/glassfish-6.2.5.zip
+                    </containerUrl>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
