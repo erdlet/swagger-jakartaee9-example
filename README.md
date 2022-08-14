@@ -1,7 +1,8 @@
 # Example for using Swagger with Jakarta EE 9
 
 This repository shows my workaround for using Swagger Codegen 3.X with the `jakarta.*` namespace. It isn't beautiful
-but functional.
+but functional. Please have a look into the [pom.xml's](./pom.xml) build section to see how the plugins are configured
+to replace `javax` with `jakarta`.
 
 To run the example, you can use `mvn package org.codehaus.cargo:cargo-maven3-plugin:run ` to use Maven Cargo Plugin
 to download a GlassFish 6 server and deploy the application automatically. It'll be available under
